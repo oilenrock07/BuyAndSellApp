@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.Linq;
 using BuyAndSellApp.BusinessLogic.DataStructures;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using BuyAndSellApp.BusinessLogic.Scrappers;
@@ -13,72 +14,67 @@ namespace BuyAndSellApp.Test
         [TestMethod]
         public void TestGettingProductList()
         {
-            GetProductList();
+            var scrapper = new OLXScrapper();
+            var request = new ProductRequest { Keyword = "ps4" };
+            var products = scrapper.GetProductList(request);
+
+            Assert.IsTrue(products != null && products.ProductList.Any());
+        }
+
+        [TestMethod]
+        public void TestGettingProductListAsync()
+        {
+            var response = new ProductResponse();
+            GetProductListAsync(response);
+            Assert.IsTrue(response != null && response.ProductList.Any());
         }
 
         [TestMethod]
         public void TestLoadingProductListFromFile()
         {
-            LoadProductListFromFile();
+            var scrapper = new OLXScrapper();
+            var products = scrapper.LoadProductListFromFile("c:/olx.txt");
+            Assert.IsTrue(products != null && products.AvailablePages > 0);
         }
 
         [TestMethod]
         public void TestGetProductListAsynchronously()
         {
-            GetProductListAsynchronously();
+            var products = new List<Product>();
+            GetProductListAsynchronously(products);
+            Assert.IsTrue(products != null && products.Any());
         }
 
         #region Private Methods
-
-        private async void GetProductList()
+        private async void GetProductListAsync(ProductResponse response)
         {
             var scrapper = new OLXScrapper();
             var request = new ProductRequest { Keyword = "ps4" };
-            var products = await scrapper.GetProductList(request);
+            response = await scrapper.GetProductListAsync(request);
         }
 
-        private async void LoadProductListFromFile()
+        private async void GetProductListAsynchronously(List<Product> productList)
         {
             var scrapper = new OLXScrapper();
-            var products = await scrapper.LoadProductListFromFile("c:/olx.txt");
-            Assert.IsTrue(products != null && products.AvailablePages > 0);
-        }
-
-
-        private async void GetProductListAsynchronously()
-        {
-            var scrapper = new OLXScrapper();
-            var request = new ProductRequest { Keyword = "3ds" };
-
-            var response = await scrapper.GetProductList(request);
-            var productList = new List<Product>();
+            var request = new ProductRequest {Keyword = "3ds"};
             object threadLock = new object();
 
-            productList.AddRange(response.ProductList);
-            
-            if (response.AvailablePages > 0)
+
+            var taskList = new List<Task<ProductResponse>>();
+            for (var ctr = 1; ctr <= 3; ++ctr)
             {
-                var taskList = new List<Task<ProductResponse>>();
-                for (var ctr = 1; ctr <= 3; ++ctr)
+                lock (threadLock)
                 {
-                    lock (threadLock)
-                    {
-                        request.Page += 1;
-                        taskList.Add(scrapper.GetProductList(request));
-                    }
+                    request.Page += 1;
+                    taskList.Add(scrapper.GetProductListAsync(request));
                 }
-
-                var result = await Task.WhenAll(taskList);
-                foreach (var productResponse in result)
-                    productList.AddRange(productResponse.ProductList);
             }
+
+            var result = await Task.WhenAll(taskList);
+            foreach (var productResponse in result)
+                productList.AddRange(productResponse.ProductList);
         }
 
-
-        private void GetMoreProducts()
-        {
-            
-        }
         #endregion
     }
 }

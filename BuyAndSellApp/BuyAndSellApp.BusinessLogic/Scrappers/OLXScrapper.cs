@@ -17,23 +17,13 @@ namespace BuyAndSellApp.BusinessLogic.Scrappers
         private readonly string _urlTemplate = "https://www.olx.ph/all-results?q={0}&page={1}";
         private readonly HtmlWeb _web = new HtmlWeb();
 
-        public virtual async Task<ProductResponse> LoadProductListFromFile(string fileName)
-        {
-            var doc = new HtmlDocument();
-            var html = File.ReadAllText(fileName);
-            doc.LoadHtml(html);
-            
-            var productList = await MapDocumentToProduct(doc);
-            return productList;
-        }
-
-        public virtual async Task<ProductResponse> GetProductList(ProductRequest request)
+        public virtual ProductResponse GetProductList(ProductRequest request)
         {
             try
             {
                 var url = string.Format(_urlTemplate, request.Keyword, request.Page);
                 var doc = _web.Load(url);
-                return await MapDocumentToProduct(doc);
+                return MapDocumentToProduct(doc);
             }
             catch (Exception ex)
             {
@@ -43,46 +33,57 @@ namespace BuyAndSellApp.BusinessLogic.Scrappers
             return null;
         }
 
-        public async Task<ProductResponse> MapDocumentToProduct(HtmlDocument doc)
+        public virtual async Task<ProductResponse> GetProductListAsync(ProductRequest request)
         {
-            var productReponse = await Task.Run(() =>
+            try
             {
-                var response = new ProductResponse();
-                var productList = new List<Product>();
+                var url = string.Format(_urlTemplate, request.Keyword, request.Page);
+                var doc = _web.Load(url);
+                return await Task.Run(() => MapDocumentToProduct(doc));
+            }
+            catch (Exception ex)
+            {
 
-                var listNode = doc.DocumentNode.SelectSingleNode(@"//*[@id='listingsRow']");
-                var nodes = listNode.SelectNodes("//div[@itemid='#product']");
+            }
 
-                foreach (var node in nodes)
-                {
-                    var product = new Product();
-                    product.Url = string.Format("https://www.olx.ph{0}", node.SelectSingleNode(".//a[1]").Attribute("href"));
-                    product.Name = node.SelectSingleNode(".//span[@class='title']").InnerText;
-                    product.Price = node.SelectSingleNode(".//meta[@itemprop='price']").Attribute("content");
-                    product.ImageUrl = node.SelectSingleNode(".//img[@itemprop='image']").Attribute("src");
+            return null;
+        }
 
-                    if (product.ImageUrl == "https://www.olx.ph/img/lazy-loader.gif")
-                        product.ImageUrl = node.SelectSingleNode(".//img[@itemprop='image']").Attribute("data-src");
+        public override ProductResponse MapDocumentToProduct(HtmlDocument doc)
+        {
+            var response = new ProductResponse();
+            var productList = new List<Product>();
 
-                    product.DatePosted = node.SelectSingleNode(".//span[@class='posted']").InnerText;
-                    product.Location = node.SelectSingleNode(".//span[@class='location']").InnerText.Trim();
-                    productList.Add(product);
-                }
+            var listNode = doc.DocumentNode.SelectSingleNode(@"//*[@id='listingsRow']");
+            var nodes = listNode.SelectNodes("//div[@itemid='#product']");
 
-                var availablePages = 0;
-                var pagination = doc.DocumentNode.SelectSingleNode("//ul[contains(@class, 'pagination')]");
-                if (pagination != null)
-                {
-                    var lastPage = pagination.SelectSingleNode("./li[last()-1]/a").InnerText;
-                    availablePages = Convert.ToInt32(lastPage);
-                }
+            foreach (var node in nodes)
+            {
+                var product = new Product();
+                product.Url = string.Format("https://www.olx.ph{0}", node.SelectSingleNode(".//a[1]").Attribute("href"));
+                product.Name = node.SelectSingleNode(".//span[@class='title']").InnerText;
+                product.Price = node.SelectSingleNode(".//meta[@itemprop='price']").Attribute("content");
+                product.ImageUrl = node.SelectSingleNode(".//img[@itemprop='image']").Attribute("src");
 
-                response.AvailablePages = availablePages;
-                response.ProductList = productList;
-                return response;
-            });
+                if (product.ImageUrl == "https://www.olx.ph/img/lazy-loader.gif")
+                    product.ImageUrl = node.SelectSingleNode(".//img[@itemprop='image']").Attribute("data-src");
 
-            return productReponse;
+                product.DatePosted = node.SelectSingleNode(".//span[@class='posted']").InnerText;
+                product.Location = node.SelectSingleNode(".//span[@class='location']").InnerText.Trim();
+                productList.Add(product);
+            }
+
+            var availablePages = 0;
+            var pagination = doc.DocumentNode.SelectSingleNode("//ul[contains(@class, 'pagination')]");
+            if (pagination != null)
+            {
+                var lastPage = pagination.SelectSingleNode("./li[last()-1]/a").InnerText;
+                availablePages = Convert.ToInt32(lastPage);
+            }
+
+            response.AvailablePages = availablePages;
+            response.ProductList = productList;
+            return response;
         }
     }
 }
