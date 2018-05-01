@@ -1,4 +1,7 @@
-﻿namespace BuyAndSellApp.Entities
+﻿
+using BuyAndSellApp.Entities.Enums;
+
+namespace BuyAndSellApp.Entities
 {
     public class Product
     {
@@ -9,6 +12,7 @@
         public string ImageUrl { get; set; }
         public string Url { get; set; }
         public string Location { get; set; }
-        public string DatePosted { get; set; }        
+        public string DatePosted { get; set; }
+        public ProductSource Source { get; set; }  
     }
 }

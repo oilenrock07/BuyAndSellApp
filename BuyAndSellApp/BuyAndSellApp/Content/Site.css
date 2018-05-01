@@ -1,5 +1,4 @@
 ﻿body {
-    padding-top: 50px;
     padding-bottom: 20px;
 }
 
@@ -21,4 +20,74 @@ input,
 select,
 textarea {
     max-width: 280px;
+}
+
+.sidebar {
+    border-right: 1px solid rgba(0, 0, 0, .1);
+}
+
+.sidebar-nav {
+    display: block;
+    padding-top: 1rem;
+}
+
+.sidebar-link {
+    display: block;
+    font-weight: 500;
+    color: rgba(0,0,0,.65);
+}
+
+.price {
+    top: 150px;
+    padding-left: 5px;
+    padding-right: 10px;
+    position: absolute;
+    background-color: #3c3c3c;
+    color: white;
+    right: 0px;
+}
+
+.search {
+    position: relative;
+    padding: 1rem 15px;
+    margin-right: -15px;
+    margin-left: -15px;
+    border-bottom: 1px solid rgba(0,0,0,.05);
+}
+
+.product-image {
+    height: 250px;
+    width: 250px;
+    overflow: hidden;
+    position: relative;
+    object-fit: cover;
+}
+
+.bd-navbar {
+    background-color: #563d7c;
+    top: 0;
+}
+
+.card-title {
+    font-size: 12px;
+}
+
+.product-card {
+    padding-top: 20px;
+}
+
+.card-body {
+    padding-top: 1.25rem;
+    padding-left: 10px;
+    padding-right: 5px;
+    font-size: 12px;
+}
+
+.date-posted {
+    color: #7b7b7b;
+}
+
+.card-description {
+    height: 50px;
+    overflow: hidden;
 }

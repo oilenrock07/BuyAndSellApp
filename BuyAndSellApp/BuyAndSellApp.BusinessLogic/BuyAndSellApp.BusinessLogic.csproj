@@ -47,6 +47,8 @@
     <Compile Include="DataStructures\ProductRequest.cs" />
     <Compile Include="DataStructures\ProductResponse.cs" />
     <Compile Include="Extensions\HtmlNodeExtension.cs" />
+    <Compile Include="Extensions\StringExtension.cs" />
+    <Compile Include="Helpers\ScrapperHelper.cs" />
     <Compile Include="Interfaces\IScrapper.cs" />
     <Compile Include="Scrappers\CarousellScrapper.cs" />
     <Compile Include="Scrappers\OLXScrapper.cs" />

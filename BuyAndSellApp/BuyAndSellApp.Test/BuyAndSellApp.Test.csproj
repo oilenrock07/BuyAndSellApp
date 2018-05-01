@@ -55,6 +55,7 @@
     <Compile Include="CarousellUnitTest.cs" />
     <Compile Include="OLXScrapperUnitTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ScrappingUnitTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\BuyAndSellApp.BusinessLogic\BuyAndSellApp.BusinessLogic.csproj">

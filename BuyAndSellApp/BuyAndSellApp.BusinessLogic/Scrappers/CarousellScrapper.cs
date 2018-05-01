@@ -6,6 +6,7 @@ using BuyAndSellApp.BusinessLogic.DataStructures;
 using BuyAndSellApp.BusinessLogic.Extensions;
 using BuyAndSellApp.BusinessLogic.Interfaces;
 using BuyAndSellApp.Entities;
+using BuyAndSellApp.Entities.Enums;
 using HtmlAgilityPack;
 
 namespace BuyAndSellApp.BusinessLogic.Scrappers
@@ -21,7 +22,9 @@ namespace BuyAndSellApp.BusinessLogic.Scrappers
             {
                 var url = string.Format(_urlTemplate, request.Keyword, request.Page);
                 var doc = _web.Load(url);
-                return MapDocumentToProduct(doc);
+                var result = MapDocumentToProduct(doc);
+                result.Keyword = request.Keyword;
+                return result;
             }
             catch (Exception ex)
             {
@@ -35,9 +38,14 @@ namespace BuyAndSellApp.BusinessLogic.Scrappers
         {
             try
             {
-                var url = string.Format(_urlTemplate, request.Keyword, request.Page);
-                var doc = _web.Load(url);
-                return await Task.Run(() => MapDocumentToProduct(doc));
+                return await Task.Run(() =>
+                {
+                    var url = string.Format(_urlTemplate, request.Keyword, request.Page);
+                    var doc = _web.Load(url);
+                    var result = MapDocumentToProduct(doc);
+                    result.Keyword = request.Keyword;
+                    return result;
+                });
             }
             catch (Exception ex)
             {
@@ -52,16 +60,19 @@ namespace BuyAndSellApp.BusinessLogic.Scrappers
             var response = new ProductResponse();
             var productList = new List<Product>();
 
-            var nodes = doc.DocumentNode.SelectNodes("//div[@class='q-X']");
+            var listNode = doc.DocumentNode.SelectSingleNode("//div[contains(@class,'card-row')]");
+            var nodes = listNode.SelectNodes("./div");
 
             foreach (var node in nodes)
             {
                 var product = new Product();
-                product.Url = string.Format("https://carousell.com{0}", node.SelectSingleNode(".//a[@class='q-e']").Attribute("href"));
+                product.Url = string.Format("https://carousell.com{0}", node.SelectSingleNode(".//a[@id='productCardThumbnail']").Attribute("href"));
                 product.Name = node.SelectSingleNode(".//h4[@id='productCardTitle']").InnerText;
                 product.Price = node.SelectSingleNode(".//dd[1]").InnerText;
+                product.Description = node.SelectSingleNode(".//dd[2]").InnerText;
                 product.ImageUrl = node.SelectSingleNode(".//noscript/img").Attribute("src");
                 product.DatePosted = node.SelectSingleNode(".//time/span").InnerText;
+                product.Source = ProductSource.Carousell;
                 productList.Add(product);
             }
 

@@ -10,7 +10,7 @@ namespace BuyAndSellApp.BusinessLogic.DataStructures
 
         public string Keyword { get; set; }
         public int Page { get; set; }
-
+        
         //add more in the future
         //public string PriceRange1 { get; set; }
     }

@@ -9,6 +9,7 @@ using BuyAndSellApp.Entities;
 using HtmlAgilityPack;
 using System.IO;
 using BuyAndSellApp.BusinessLogic.Extensions;
+using BuyAndSellApp.Entities.Enums;
 
 namespace BuyAndSellApp.BusinessLogic.Scrappers
 {
@@ -23,7 +24,9 @@ namespace BuyAndSellApp.BusinessLogic.Scrappers
             {
                 var url = string.Format(_urlTemplate, request.Keyword, request.Page);
                 var doc = _web.Load(url);
-                return MapDocumentToProduct(doc);
+                var result = MapDocumentToProduct(doc);
+                result.Keyword = request.Keyword;
+                return result;
             }
             catch (Exception ex)
             {
@@ -37,9 +40,14 @@ namespace BuyAndSellApp.BusinessLogic.Scrappers
         {
             try
             {
-                var url = string.Format(_urlTemplate, request.Keyword, request.Page);
-                var doc = _web.Load(url);
-                return await Task.Run(() => MapDocumentToProduct(doc));
+                return await Task.Run(() =>
+                {
+                    var url = string.Format(_urlTemplate, request.Keyword, request.Page);
+                    var doc = _web.Load(url);
+                    var result = MapDocumentToProduct(doc);
+                    result.Keyword = request.Keyword;
+                    return result;
+                });
             }
             catch (Exception ex)
             {
@@ -62,7 +70,7 @@ namespace BuyAndSellApp.BusinessLogic.Scrappers
                 var product = new Product();
                 product.Url = string.Format("https://www.olx.ph{0}", node.SelectSingleNode(".//a[1]").Attribute("href"));
                 product.Name = node.SelectSingleNode(".//span[@class='title']").InnerText;
-                product.Price = node.SelectSingleNode(".//meta[@itemprop='price']").Attribute("content");
+                product.Price = node.SelectSingleNode(".//meta[@itemprop='price']").Attribute("content").CleanPrice();
                 product.ImageUrl = node.SelectSingleNode(".//img[@itemprop='image']").Attribute("src");
 
                 if (product.ImageUrl == "https://www.olx.ph/img/lazy-loader.gif")
@@ -70,6 +78,7 @@ namespace BuyAndSellApp.BusinessLogic.Scrappers
 
                 product.DatePosted = node.SelectSingleNode(".//span[@class='posted']").InnerText;
                 product.Location = node.SelectSingleNode(".//span[@class='location']").InnerText.Trim();
+                product.Source = ProductSource.Olx;
                 productList.Add(product);
             }
 
