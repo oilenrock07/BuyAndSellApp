@@ -34,6 +34,22 @@ namespace BuyAndSellApp.BusinessLogic.Scrappers
             return null;
         }
 
+        public virtual ProductResponse GetProductList(string url)
+        {
+            try
+            {
+                var doc = _web.Load(url);
+                var result = MapDocumentToProduct(doc);
+                return result;
+            }
+            catch (Exception ex)
+            {
+
+            }
+
+            return null;
+        }
+
         public virtual async Task<ProductResponse> GetProductListAsync(ProductRequest request)
         {
             try
@@ -44,6 +60,7 @@ namespace BuyAndSellApp.BusinessLogic.Scrappers
                     var doc = _web.Load(url);
                     var result = MapDocumentToProduct(doc);
                     result.Keyword = request.Keyword;
+                    result.Source = request.Source;
                     return result;
                 });
             }

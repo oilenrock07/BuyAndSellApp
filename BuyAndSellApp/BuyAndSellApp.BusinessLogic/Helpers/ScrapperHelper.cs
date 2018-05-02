@@ -4,16 +4,17 @@ using System.Linq;
 using System.Threading.Tasks;
 using BuyAndSellApp.BusinessLogic.DataStructures;
 using BuyAndSellApp.BusinessLogic.Scrappers;
+using BuyAndSellApp.Entities.Enums;
 
 namespace BuyAndSellApp.BusinessLogic.Helpers
 {
     public class ScrapperHelper
     {
-        public async Task<IEnumerable<ProductResponse>> GetProductList(IEnumerable<string> keywords)
+        public async Task<IEnumerable<ProductResponse>> GetProductList(IEnumerable<ProductRequest> requests)
         {
             try
             {
-                if (!keywords.Any())
+                if (!requests.Any())
                     return null;
 
                 var threadLock = new object();
@@ -24,29 +25,36 @@ namespace BuyAndSellApp.BusinessLogic.Helpers
                 var carousellScrapper = new CarousellScrapper();
                 var olxScrapper = new OLXScrapper();
 
-                foreach (var keyword in keywords)
+                foreach (var request in requests)
                 {
-                    var carousellRequest = new ProductRequest {Keyword = keyword};
-                    taskList.Add(Task.Run(() =>
+                    if (request.Source == ProductSource.Carousell)
                     {
-                        var result = carousellScrapper.GetProductList(carousellRequest);
-                        lock (threadLock)
+                        taskList.Add(Task.Run(() =>
                         {
-                            list.Add(result);
-                        }
-                        return result;
-                    }));
+                            var result = String.IsNullOrEmpty(request.NextPage)
+                                ? carousellScrapper.GetProductList(request)
+                                : carousellScrapper.GetProductList(request.NextPage);
+                            lock (threadLock)
+                            {
+                                list.Add(result);
+                            }
+                            return result;
+                        }));
+                    }
 
-                    var olxRequest = new ProductRequest {Keyword = keyword, Page = 1};
-                    taskList.Add(Task.Run(() =>
+                    if (request.Source == ProductSource.Olx)
                     {
-                        var result = olxScrapper.GetProductList(olxRequest);
-                        lock (threadLock)
+                        var olxRequest = new ProductRequest { Keyword = request.Keyword, Page = request.Page};
+                        taskList.Add(Task.Run(() =>
                         {
-                            list.Add(result);
-                        }
-                        return result;
-                    }));
+                            var result = olxScrapper.GetProductList(olxRequest);
+                            lock (threadLock)
+                            {
+                                list.Add(result);
+                            }
+                            return result;
+                        }));
+                    }
                 }
 
                 Task.WaitAll(taskList.ToArray());
@@ -60,7 +68,6 @@ namespace BuyAndSellApp.BusinessLogic.Helpers
             {
                 throw ex;
             }
-
         }
     }
 }

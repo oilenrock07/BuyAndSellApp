@@ -8,26 +8,43 @@ using System.Web.Mvc;
 using BuyAndSelApp.Models;
 using BuyAndSellApp.BusinessLogic.DataStructures;
 using BuyAndSellApp.BusinessLogic.Helpers;
+using BuyAndSellApp.Entities.Enums;
+using Newtonsoft.Json;
 
 namespace BuyAndSelApp.Controllers
 {
     public class HomeController : Controller
     {
-        public ActionResult Index(string keyword = "")
+        public async Task<ActionResult> Index(string keyword = "")
         {
             var viewModel = new ProductListViewModel();
             if (!string.IsNullOrEmpty(keyword))
-                viewModel.ProductResponse = GetProductListings(new[] {keyword});
-
+                viewModel.ProductResponse = await GetProductListings(keyword);
+            
             return View(viewModel);
         }
 
         [HttpPost]
-        public ActionResult Index(ProductListViewModel viewModel)
+        public async Task<ActionResult> Index(ProductListViewModel viewModel)
         {
-            if (!string.IsNullOrEmpty(viewModel.Search))
-                viewModel.ProductResponse = GetProductListings(viewModel.Search.Split(','));
-         
+            if (!string.IsNullOrEmpty(viewModel.Search) && viewModel.Request == null)
+            {
+                var keywords = viewModel.Search.Split(',').Where(x => !string.IsNullOrEmpty(x.Trim()));
+                var requests = new List<ProductRequest>();
+                foreach (var keyword in keywords)
+                {
+                    requests.Add(new ProductRequest { Keyword = keyword});
+                    requests.Add(new ProductRequest { Keyword = keyword, Source = ProductSource.Carousell});
+                }
+                viewModel.ProductResponse = await GetProductListings(requests);
+            }
+            else if (viewModel.Request != null)
+            {
+                var requests = JsonConvert.DeserializeObject<IEnumerable<ProductRequest>>(viewModel.Request);
+                viewModel.ProductResponse = await GetProductListings(requests);
+            }
+
+            viewModel.Request = null;
             return View(viewModel);
         }
 
@@ -46,16 +63,21 @@ namespace BuyAndSelApp.Controllers
         }
 
         #region Private Methods
-
-        private IEnumerable<ProductResponse> GetProductListings(IEnumerable<string> search)
+        private async Task<IEnumerable<ProductResponse>> GetProductListings(string keyword)
         {
-            return GetProductListings2(search).Result;
+            var requests = new List<ProductRequest>
+            {
+                new ProductRequest {Keyword = keyword},
+                new ProductRequest {Keyword = keyword, Source = ProductSource.Carousell}
+            };
+
+            return await GetProductListings(requests);
         }
 
-        private async Task<IEnumerable<ProductResponse>> GetProductListings2(IEnumerable<string> search)
+        private async Task<IEnumerable<ProductResponse>> GetProductListings(IEnumerable<ProductRequest> requests)
         {
             var helper = new ScrapperHelper();
-            var listings = await helper.GetProductList(search);
+            var listings = await helper.GetProductList(requests);
 
             return listings;
         }

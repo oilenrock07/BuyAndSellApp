@@ -1,0 +1,20 @@
+﻿@model BuyAndSellApp.Entities.Product
+
+<div class="col-md-2 col-sm-4 col-12 d-flex align-items-stretch product-card">
+    <div class="card" style="width: 14rem;">
+        <a href="@Model.Url" target="_blank">
+            <img class="card-img-top" src="@Model.ImageUrl" alt="@Model.Name" height="200">
+        </a>
+        <span class="price">@Model.Price</span>
+        <div class="card-body">
+            <h5 class="card-title">@Model.Name</h5>
+            @if (!string.IsNullOrEmpty(Model.Description))
+            {
+                <p class="card-text card-description">@Model.Description</p>
+            }
+            <div class="card-text date-posted">@Model.DatePosted</div>
+            <div class="card-text">@Model.Location</div>
+        </div>
+    </div>
+</div>
+

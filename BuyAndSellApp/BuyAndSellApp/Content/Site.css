@@ -91,3 +91,8 @@ textarea {
     height: 50px;
     overflow: hidden;
 }
+
+.next-button {
+    float: right;
+    padding: 10px;
+}

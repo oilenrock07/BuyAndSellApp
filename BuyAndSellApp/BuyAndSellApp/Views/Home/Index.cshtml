@@ -1,22 +1,24 @@
 ﻿@model BuyAndSelApp.Models.ProductListViewModel
 @{
-    ViewBag.Title = "Home Page";
+    ViewBag.Title = "Buy And Sell App";
 }
 
 <div class="row flex-xl-nowrap">
     <div class="col-md-2 sidebar">
 
-        @using (Html.BeginForm("Index", "Home", FormMethod.Post, new { @class = "search" }))
+        @using (Html.BeginForm("Index", "Home", FormMethod.Post, new {@class = "search", id="searchform"}))
         {
-            @Html.TextBoxFor(model => model.Search, new { @class = "form-control", placeholder = "PS4,PS3,3DS" })
+            @Html.TextBoxFor(model => model.Search, new {@class = "form-control", placeholder = "PS4,PS3,3DS"})
+            @Html.HiddenFor(x => x.Request, new {id = "request"})
+            @Html.HiddenFor(x => x.SerializedRequest, new {id = "serializedrequest"})
         }
 
         <div class="sidebar-nav">
             <h4>Common Search</h4>
-            @Html.ActionLink("3DS", "Index", new { keyword = "3ds"}, new {@class = "sidebar-link" })
-            @Html.ActionLink("Playstation 4", "Index", new { keyword = "ps4" }, new { @class = "sidebar-link" })
-            @Html.ActionLink("Playstation 3", "Index", new { keyword = "ps3" }, new { @class = "sidebar-link" })
-            @Html.ActionLink("Gaming Laptop", "Index", new { keyword = "gaming laptop" }, new { @class = "sidebar-link" })            
+            @Html.ActionLink("3DS", "Index", new {keyword = "3ds"}, new {@class = "sidebar-link"})
+            @Html.ActionLink("Playstation 4", "Index", new {keyword = "ps4"}, new {@class = "sidebar-link"})
+            @Html.ActionLink("Playstation 3", "Index", new {keyword = "ps3"}, new {@class = "sidebar-link"})
+            @Html.ActionLink("Gaming Laptop", "Index", new {keyword = "gaming laptop"}, new {@class = "sidebar-link"})
         </div>
     </div>
     <div class="col-md-10">
@@ -27,27 +29,27 @@
                 {
                     foreach (var product in response.ProductList)
                     {
-                        <div class="col-md-2 col-sm-4 col-12 d-flex align-items-stretch product-card">
-                            <div class="card" style="width: 14rem;">
-                                <a href="@product.Url" target="_blank">
-                                    <img class="card-img-top" src="@product.ImageUrl" alt="@product.Name" height="200">
-                                </a>
-                                <span class="price">@product.Price</span>
-                                <div class="card-body">
-                                    <h5 class="card-title">@product.Name</h5>
-                                    @if (!string.IsNullOrEmpty(product.Description))
-                                    {
-                                        <p class="card-text card-description">@product.Description</p>
-                                    }                                    
-                                    <div class="card-text date-posted">@product.DatePosted</div>
-                                    <div class="card-text">@product.Location</div>
-                                </div>
-                            </div>
-                        </div>
+                        @Html.Partial("_Product", product)
                     }
                 }
             }
         </div>
-
     </div>
 </div>
+@if (Model != null && Model.ProductResponse != null)
+{
+    <div class="next-button"><button class="btn btn-primary" id="next">Next</button></div>
+}
+
+@section scripts {
+    <script type="text/javascript">
+        $(document).ready(function() {
+            $('#request').val(null);
+        });
+
+        $('#next').click(function () {
+            $('#request').val($('#serializedrequest').val());
+            $('#searchform').submit();
+        });
+    </script>
+}

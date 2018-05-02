@@ -25,7 +25,9 @@ namespace BuyAndSellApp.BusinessLogic.Scrappers
                 var url = string.Format(_urlTemplate, request.Keyword, request.Page);
                 var doc = _web.Load(url);
                 var result = MapDocumentToProduct(doc);
+                result.CurrentPage = request.Page;
                 result.Keyword = request.Keyword;
+                result.Source = request.Source;
                 return result;
             }
             catch (Exception ex)

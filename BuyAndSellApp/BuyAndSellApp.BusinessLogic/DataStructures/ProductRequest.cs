@@ -1,4 +1,6 @@
 ﻿
+using BuyAndSellApp.Entities.Enums;
+
 namespace BuyAndSellApp.BusinessLogic.DataStructures
 {
     public class ProductRequest
@@ -8,10 +10,9 @@ namespace BuyAndSellApp.BusinessLogic.DataStructures
             Page = 1;
         }
 
+        public ProductSource Source { get; set; }
         public string Keyword { get; set; }
-        public int Page { get; set; }
-        
-        //add more in the future
-        //public string PriceRange1 { get; set; }
+        public int Page { get; set; } //for olx
+        public string NextPage { get; set; } //for carousell
     }
 }

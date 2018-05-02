@@ -21,7 +21,7 @@ namespace BuyAndSellApp.Test
         {
             var helper = new ScrapperHelper();
             var keywords = new[] {"ps4", "ps3"};
-            var products = await helper.GetProductList(keywords);
+            //var products = await helper.GetProductList(keywords);
         }
     }
 }
