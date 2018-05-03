@@ -27,9 +27,12 @@
             {
                 foreach (var response in Model.ProductResponse)
                 {
-                    foreach (var product in response.ProductList)
+                    if (response != null)
                     {
-                        @Html.Partial("_Product", product)
+                        foreach (var product in response.ProductList)
+                        {
+                            @Html.Partial("_Product", product)
+                        }
                     }
                 }
             }

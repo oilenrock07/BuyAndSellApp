@@ -13,14 +13,14 @@ namespace BuyAndSellApp.BusinessLogic.Scrappers
 {
     public class CarousellScrapper : Scrapper, IScrapper
     {
-        private readonly string _urlTemplate = "https://carousell.com/search/products/?query={0}";
+        private readonly string _urlTemplate = "https://carousell.com/search/products/?sort_by=time_created%2Cdescending&query={0}";
         private readonly HtmlWeb _web = new HtmlWeb();
 
         public virtual ProductResponse GetProductList(ProductRequest request)
         {
             try
             {
-                var url = string.Format(_urlTemplate, request.Keyword, request.Page);
+                var url = string.Format(_urlTemplate, request.Keyword);
                 var doc = _web.Load(url);
                 var result = MapDocumentToProduct(doc);
                 result.Keyword = request.Keyword;

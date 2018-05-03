@@ -17,7 +17,7 @@ namespace BuyAndSelApp.Models
             {
                 if (ProductResponse != null)
                 {
-                    var requests = ProductResponse.Select(x => new ProductRequest
+                    var requests = ProductResponse.Where(x => x != null).Select(x => new ProductRequest
                     {
                         Keyword = x.Keyword,
                         Page = ++x.CurrentPage,
